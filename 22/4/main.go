@@ -31,6 +31,10 @@ func (r1 Range) Contains(r2 Range) bool {
 	return r1.start <= r2.start && r1.end >= r2.end
 }
 
+func (r1 Range) Overlaps(r2 Range) bool {
+	return r1.Contains(r2) || (r1.end >= r2.start && r1.start <= r2.end)
+}
+
 func main() {
 	data, err := os.ReadFile("input.txt")
 	check(err)
@@ -38,15 +42,21 @@ func main() {
 	lines := strings.Split(string(data), "\n")
 	lines = lines[:len(lines)-1]
 
-	count := 0
+	contain_count := 0
+	overlap_count := 0
 	for _, line := range lines {
 		pairs := strings.Split(line, ",")
 
 		r1 := makeRange(pairs[0])
 		r2 := makeRange(pairs[1])
+
 		if r1.Contains(r2) || r2.Contains(r1) {
-			count += 1
+			contain_count += 1
+		}
+		if r1.Overlaps(r2) || r2.Overlaps(r1) {
+			overlap_count += 1
 		}
 	}
-	fmt.Println(count)
+	fmt.Println(contain_count)
+	fmt.Println(overlap_count)
 }
