@@ -13,15 +13,9 @@ func check(err error) {
 	}
 }
 
-func main() {
-	data, err := os.ReadFile("input.txt")
-	check(err)
-
-	groups := strings.Split(string(data), "\n\n")
-
-	// Let's first extract the stacks into a map
+func extractStacks(data string) map[string][]string {
 	stacks := make(map[string][]string)
-	entries := strings.Split(groups[0], "\n")
+	entries := strings.Split(data, "\n")
 	for idx, num := range entries[len(entries)-1] {
 		if num == ' ' {
 			continue
@@ -39,11 +33,10 @@ func main() {
 		}
 		stacks[string(num)] = vals
 	}
-	fmt.Println(stacks)
+	return stacks
+}
 
-	// Next we process the actions
-	actions := strings.Split(groups[1], "\n")
-	actions = actions[:len(actions)-1]
+func runActions(stacks map[string][]string, actions []string, allAtOnce bool) {
 	for _, action := range actions {
 		comps := strings.Split(action, " ")
 
@@ -56,17 +49,22 @@ func main() {
 		dest_key := comps[5]
 		dest := stacks[dest_key]
 
-		for i := 0; i < count; i++ {
-			popped := orig[len(orig)-1]
-			orig = orig[:len(orig)-1]
-			dest = append(dest, popped)
+		if allAtOnce {
+			popped := orig[len(orig)-count:]
+			orig = orig[:len(orig)-count]
+			dest = append(dest, popped...)
+		} else {
+			for i := 0; i < count; i++ {
+				popped := orig[len(orig)-1]
+				orig = orig[:len(orig)-1]
+				dest = append(dest, popped)
+			}
 		}
+
 		stacks[orig_key] = orig
 		stacks[dest_key] = dest
 	}
-	fmt.Println(stacks)
 
-	// Now walk through the stacks in order
 	res := ""
 	for i := 1; i <= len(stacks); i++ {
 		val := stacks[fmt.Sprint(i)]
@@ -75,4 +73,20 @@ func main() {
 		}
 	}
 	fmt.Println(res)
+}
+
+func main() {
+	data, err := os.ReadFile("input.txt")
+	check(err)
+
+	groups := strings.Split(string(data), "\n\n")
+
+	actions := strings.Split(groups[1], "\n")
+	actions = actions[:len(actions)-1]
+
+	stacks := extractStacks(groups[0])
+	runActions(stacks, actions, false)
+
+	stacks = extractStacks(groups[0])
+	runActions(stacks, actions, true)
 }
